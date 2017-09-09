@@ -17,8 +17,8 @@ type RESTMethod func(context.Context, *http.Request, *user.User) (interface{}, e
 
 // RESTCollection is a collection of RESTMethods that are bound to a URL prefix.
 type RESTCollection struct {
-	// URLPrefix e.g. "/api/mycollection".
-	URLPrefix     string
+	// URL e.g. "/api/mycollection".
+	URL           string
 	Methods       map[string]RESTMethod
 	AllowedOrigin string
 }
@@ -37,7 +37,7 @@ func (e RESTErr) Error() string {
 // Bind binds RESTCollections as HTTP handlers.
 func Bind(collections []RESTCollection) {
 	for _, c := range collections {
-		http.Handle(c.URLPrefix, httpHandler{c})
+		http.Handle(c.URL, httpHandler{c})
 	}
 }
 
@@ -58,10 +58,6 @@ func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
 		return
 	}
-	//if u == nil {
-	//  writeErr(w, ErrNoLogin, c)
-	//  return
-	//}
 	m, ok := h.Collection.Methods[r.Method]
 	if !ok {
 		http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
