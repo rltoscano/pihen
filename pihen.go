@@ -13,7 +13,7 @@ import (
 )
 
 // RESTMethod is a function type to call when receiving an HTTP request.
-type RESTMethod func(*http.Request, context.Context, *user.User) (interface{}, error)
+type RESTMethod func(context.Context, *http.Request, *user.User) (interface{}, error)
 
 // RESTCollection is a collection of RESTMethods that are bound to a URL prefix.
 type RESTCollection struct {
@@ -67,7 +67,7 @@ func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed.", http.StatusMethodNotAllowed)
 		return
 	}
-	resp, err := m(r, c, nil)
+	resp, err := m(c, r, nil)
 	if err != nil {
 		switch err := err.(type) {
 		case RESTErr:
