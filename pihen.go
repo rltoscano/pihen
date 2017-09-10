@@ -12,37 +12,37 @@ import (
 	"google.golang.org/appengine/user"
 )
 
-// RESTMethod is a function type to call when receiving an HTTP request.
-type RESTMethod func(context.Context, *http.Request, *user.User) (interface{}, error)
+// Method is a function type to call when receiving an HTTP request.
+type Method func(context.Context, *http.Request, *user.User) (interface{}, error)
 
-// RESTCollection is a collection of RESTMethods that are bound to a URL prefix.
-type RESTCollection struct {
+// Collection is a collection of Methods that are bound to a URL prefix.
+type Collection struct {
 	// URL e.g. "/api/mycollection".
 	URL           string
-	Methods       map[string]RESTMethod
+	Methods       map[string]Method
 	AllowedOrigin string
 }
 
-// RESTErr represents a request error that should be returned from a RESTMethod. Unexpected
+// Error represents a request error that should be returned from a Method. Unexpected
 // errors should bubble up unchanged.
-type RESTErr struct {
+type Error struct {
 	Status  int
 	Message string
 }
 
-func (e RESTErr) Error() string {
+func (e Error) Error() string {
 	return fmt.Sprintf("%s (%d)", e.Message, e.Status)
 }
 
-// Bind binds RESTCollections as HTTP handlers.
-func Bind(collections []RESTCollection) {
+// Bind binds Collections as HTTP handlers.
+func Bind(collections []Collection) {
 	for _, c := range collections {
 		http.Handle(c.URL, httpHandler{c})
 	}
 }
 
 type httpHandler struct {
-	Collection RESTCollection
+	Collection Collection
 }
 
 func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func (h httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	resp, err := m(c, r, nil)
 	if err != nil {
 		switch err := err.(type) {
-		case RESTErr:
+		case Error:
 			log.Infof(c, "Api failure: %d %s", err.Status, err.Message)
 			http.Error(w, err.Message, err.Status)
 		default:
